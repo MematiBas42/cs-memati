@@ -1,0 +1,62 @@
+[
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=animecix.net&sz=%size%",
+        "fileHash": "sha256-48b1cada1388dd92a8ac330a9bbbb1f997fffb84610e7fe3e2973115ea659564",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/MematiBas42/cs-memati",
+        "fileSize": 26913,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "MematiBas42"
+        ],
+        "tvTypes": [
+            "Anime"
+        ],
+        "version": 7,
+        "internalName": "AnimeciX",
+        "description": "AnimeciX, animeleri ke\u015ffedebilece\u011finiz ve animeler hakk\u0131nda her \u015feyi \u00f6\u011frenebilece\u011finiz bir payla\u015f\u0131m platformudur.",
+        "url": "https://raw.githubusercontent.com/MematiBas42/cs-memati/builds/AnimeciX.cs3",
+        "name": "AnimeciX"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=dizilla.now&sz=%size%",
+        "fileHash": "sha256-08cc9e9b667e0996a3d02504ea3a1c8e24539d7e286988991d439c3ca91b0907",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/MematiBas42/cs-memati",
+        "fileSize": 48015,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "MematiBas42"
+        ],
+        "tvTypes": [
+            "TvSeries"
+        ],
+        "version": 4,
+        "internalName": "Dizilla",
+        "description": "Dizilla - Yabanc\u0131 dizi izleme platformu eklentisi.",
+        "url": "https://raw.githubusercontent.com/MematiBas42/cs-memati/builds/Dizilla.cs3",
+        "name": "Dizilla"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=sezonlukdizi6.com&sz=%size%",
+        "fileHash": "sha256-8cdbc10253232f383b20c42abdd4a2412ae35ab97d1357b65677e044a6e1f693",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/MematiBas42/cs-memati",
+        "fileSize": 38224,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "MematiBas42"
+        ],
+        "tvTypes": [
+            "TvSeries"
+        ],
+        "version": 2,
+        "internalName": "SezonlukDizi",
+        "description": "G\u00fcncel ve eski dizileri en iyi g\u00f6r\u00fcnt\u00fc kalitesiyle bulabilece\u011finiz yabanc\u0131 dizi izleme siteniz.",
+        "url": "https://raw.githubusercontent.com/MematiBas42/cs-memati/builds/SezonlukDizi.cs3",
+        "name": "SezonlukDizi"
+    }
+]
