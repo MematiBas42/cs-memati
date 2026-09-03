@@ -39,6 +39,8 @@ data class DizillaSecureData(
 
 data class DizillaContentItem(
     @JsonProperty("imdb_point") val imdbPoint: Double? = null,
+    @JsonProperty("release_year") val releaseYear: Int? = null,
+    @JsonProperty("categories") val categories: String? = null,
     @JsonProperty("description") val description: String? = null,
     @JsonProperty("used_long_description") val usedLongDescription: String? = null,
     @JsonProperty("used_short_description") val usedShortDescription: String? = null
@@ -97,7 +99,13 @@ data class TmdbEpisode(
     @JsonProperty("air_date") val airDate: String? = null
 )
 data class TmdbDetails(
-    @JsonProperty("credits") val credits: TmdbCredits? = null
+    @JsonProperty("credits") val credits: TmdbCredits? = null,
+    @JsonProperty("first_air_date") val firstAirDate: String? = null,
+    @JsonProperty("genres") val genres: List<TmdbGenre>? = null
+)
+
+data class TmdbGenre(
+    @JsonProperty("name") val name: String? = null
 )
 data class TmdbCredits(
     @JsonProperty("cast") val cast: List<TmdbCast>? = null

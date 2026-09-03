@@ -185,14 +185,8 @@ class DizillaProvider : MainAPI() {
         
         val rawPoster = document.selectFirst("meta[property='og:image']")?.attr("content")
         val description = document.selectFirst("meta[property='og:description']")?.attr("content")?.trim() 
-        val tags = document.select("a[href*='/dizi-turu/']").map { it.text() }.toMutableList()
-        
-        // Zeki Dil Tespiti (SEO Metinlerinden)
-        val combinedSeo = "${rawTitle} ${description ?: ""}".lowercase()
-        if (combinedSeo.contains("dublaj")) tags.add("🇹🇷 Dublaj")
-        if (combinedSeo.contains("altyaz")) tags.add("🇹🇷 Altyazı")
-        
-        val year = document.select("span").find { it.text().matches(Regex("\\d{4}")) }?.text()?.toIntOrNull()
+        val htmlTags = document.select("a[href*='/dizi-turu/']").map { it.text() }
+        val htmlYear = document.select("span").find { it.text().matches(Regex("\\d{4}")) }?.text()?.toIntOrNull()
 
         var dizillaData: DizillaSecureData? = null
         val episodeList = mutableListOf<Episode>()
@@ -287,14 +281,30 @@ class DizillaProvider : MainAPI() {
         return newTvSeriesLoadResponse(title, url, TvType.TvSeries, episodeList.distinctBy { it.data }.sortedBy { it.episode }) {
             this.posterUrl = cleanDizillaImage(rawPoster, isPoster = true)
             this.backgroundPosterUrl = cleanDizillaImage(rawPoster, isPoster = false)
-            this.year = year
+            
+            // 1. TMDB Yıl Tespiti (Fallback: Dizilla JSON -> HTML)
+            this.year = tmdbDetails?.firstAirDate?.substringBefore("-")?.toIntOrNull()
+                ?: dizillaData?.contentItem?.releaseYear
+                ?: htmlYear
+
             this.plot = dizillaData?.contentItem?.usedShortDescription?.takeIf { it.isNotBlank() }
                 ?: dizillaData?.contentItem?.description?.takeIf { it.isNotBlank() }
                 ?: dizillaData?.contentItem?.usedLongDescription?.takeIf { it.isNotBlank() }
                 ?: description
-            this.tags = tags
+                
+            // 2. TMDB Tür (Genre) Tespiti ve Zeki Dil Etiketleri
+            val tmdbGenres = tmdbDetails?.genres?.mapNotNull { it.name } ?: emptyList()
+            val dizillaCategories = dizillaData?.contentItem?.categories?.split(",")?.map { it.trim() }?.filter { it.isNotBlank() } ?: emptyList()
             
-            // TMDB + Native Hybrid Actor Mapping
+            val combinedSeo = "${rawTitle} ${description ?: ""}".lowercase()
+            val languageTags = mutableListOf<String>()
+            if (combinedSeo.contains("dublaj")) languageTags.add("🇹🇷 Dublaj")
+            if (combinedSeo.contains("altyaz")) languageTags.add("🇹🇷 Altyazı")
+            
+            val finalTags = (tmdbGenres.takeIf { it.isNotEmpty() } ?: dizillaCategories.takeIf { it.isNotEmpty() } ?: htmlTags) + languageTags
+            this.tags = finalTags.distinct()
+            
+            // Native Dizilla + TMDB Actor Mapping
             val allActors = mutableListOf<Pair<Actor, String?>>()
             
             // 1. TMDB'den gelen devasa ve resimli kadroyu ekle
