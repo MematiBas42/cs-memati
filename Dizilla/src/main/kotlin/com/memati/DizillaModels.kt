@@ -140,6 +140,9 @@ data class DizillaEpisode(
 )
 
 data class DizillaSource(
+    @JsonProperty("source_name") val sourceName: String? = null,
+    @JsonProperty("language_name") val languageName: String? = null,
+    @JsonProperty("quality_name") val qualityName: String? = null,
     @JsonProperty("source_content") val sourceContent: String? = null
 )
 
