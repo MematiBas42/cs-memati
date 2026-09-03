@@ -375,8 +375,11 @@ class DizillaProvider : MainAPI() {
                                         }
                                         if (!linkFound) {
                                             val domain = Regex("https?://([^/]+)").find(finalUrl)?.groupValues?.getOrNull(1) ?: "Bilinmeyen"
+                                            val altName = src.sourceName ?: "Alternatif"
+                                            val badge = "⚠️ BOZUK/DESTEKLENMİYOR - $altName ($domain)"
+                                            
                                             callback.invoke(
-                                                newExtractorLink("⚠️ Oynatıcı Desteklenmiyor", domain, finalUrl) {
+                                                newExtractorLink("Dizilla", badge, finalUrl) {
                                                 }
                                             )
                                         }
