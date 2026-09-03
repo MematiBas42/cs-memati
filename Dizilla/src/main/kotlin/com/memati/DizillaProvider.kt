@@ -185,7 +185,13 @@ class DizillaProvider : MainAPI() {
         
         val rawPoster = document.selectFirst("meta[property='og:image']")?.attr("content")
         val description = document.selectFirst("meta[property='og:description']")?.attr("content")?.trim() 
-        val tags = document.select("a[href*='/dizi-turu/']").map { it.text() }
+        val tags = document.select("a[href*='/dizi-turu/']").map { it.text() }.toMutableList()
+        
+        // Zeki Dil Tespiti (SEO Metinlerinden)
+        val combinedSeo = "${rawTitle} ${description ?: ""}".lowercase()
+        if (combinedSeo.contains("dublaj")) tags.add("🇹🇷 Dublaj")
+        if (combinedSeo.contains("altyaz")) tags.add("🇹🇷 Altyazı")
+        
         val year = document.select("span").find { it.text().matches(Regex("\\d{4}")) }?.text()?.toIntOrNull()
 
         var dizillaData: DizillaSecureData? = null
