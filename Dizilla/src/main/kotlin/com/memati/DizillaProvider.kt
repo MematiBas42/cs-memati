@@ -257,7 +257,18 @@ class DizillaProvider : MainAPI() {
                                     val finalUrl = if (rawUrl.startsWith("//")) "https:$rawUrl" else rawUrl
                                     if (finalUrl !in iframes) {
                                         iframes.add(finalUrl)
-                                        loadExtractor(finalUrl, "$mainUrl/", subtitleCallback, callback)
+                                        var linkFound = false
+                                        loadExtractor(finalUrl, "$mainUrl/", subtitleCallback) { link ->
+                                            linkFound = true
+                                            callback.invoke(link)
+                                        }
+                                        if (!linkFound) {
+                                            val domain = Regex("https?://([^/]+)").find(finalUrl)?.groupValues?.getOrNull(1) ?: "Bilinmeyen"
+                                            callback.invoke(
+                                                newExtractorLink("⚠️ Oynatıcı Desteklenmiyor", domain, finalUrl) {
+                                                }
+                                            )
+                                        }
                                     }
                                 }
                             }
