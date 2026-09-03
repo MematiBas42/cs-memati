@@ -6,17 +6,6 @@ concurrency:
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
-      - main
-    paths-ignore:
-      - '**.md'
-      - '.gitignore'
-      - 'repo.json'
-      - 'dev-tools/**'
-      - 'releases/**'
-      - '.vscode/**'
 
 # Least Privilege: Yalnızca gerekli izinler tanımlandı
 permissions:
