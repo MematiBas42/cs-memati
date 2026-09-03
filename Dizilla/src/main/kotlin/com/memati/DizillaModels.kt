@@ -39,6 +39,7 @@ data class DizillaSecureData(
 
 data class DizillaContentItem(
     @JsonProperty("imdb_point") val imdbPoint: Double? = null,
+    @JsonProperty("description") val description: String? = null,
     @JsonProperty("used_long_description") val usedLongDescription: String? = null,
     @JsonProperty("used_short_description") val usedShortDescription: String? = null
 )
@@ -69,7 +70,42 @@ data class DizillaRelatedResults(
     @JsonProperty("getSerieCastsById") val getSerieCastsById: DizillaResultWrapper<DizillaCast>? = null,
     @JsonProperty("getSerieCreatorsById") val getSerieCreatorsById: DizillaResultWrapper<DizillaCast>? = null,
     @JsonProperty("getSerieSeasonAndEpisodes") val getSerieSeasonAndEpisodes: DizillaResultWrapper<DizillaSeason>? = null,
-    @JsonProperty("getEpisodeSources") val getEpisodeSources: DizillaResultWrapper<DizillaSource>? = null
+    @JsonProperty("getEpisodeSources") val getEpisodeSources: DizillaResultWrapper<DizillaSource>? = null,
+    @JsonProperty("getSeriesByImdb") val getSeriesByImdb: DizillaResultWrapper<DizillaSeriesByImdb>? = null
+)
+
+data class DizillaSeriesByImdb(
+    @JsonProperty("imdb_id") val imdbId: String? = null
+)
+
+// --- TMDB MODELS ---
+data class TmdbFindResponse(
+    @JsonProperty("tv_results") val tvResults: List<TmdbTvResult>? = null
+)
+data class TmdbTvResult(
+    @JsonProperty("id") val id: Int? = null
+)
+data class TmdbSeasonResp(
+    @JsonProperty("episodes") val episodes: List<TmdbEpisode>? = null
+)
+data class TmdbEpisode(
+    @JsonProperty("episode_number") val episodeNumber: Int? = null,
+    @JsonProperty("name") val name: String? = null,
+    @JsonProperty("overview") val overview: String? = null,
+    @JsonProperty("still_path") val stillPath: String? = null,
+    @JsonProperty("runtime") val runtime: Int? = null,
+    @JsonProperty("air_date") val airDate: String? = null
+)
+data class TmdbDetails(
+    @JsonProperty("credits") val credits: TmdbCredits? = null
+)
+data class TmdbCredits(
+    @JsonProperty("cast") val cast: List<TmdbCast>? = null
+)
+data class TmdbCast(
+    @JsonProperty("name") val name: String? = null,
+    @JsonProperty("character") val character: String? = null,
+    @JsonProperty("profile_path") val profilePath: String? = null
 )
 
 data class DizillaCast(
@@ -98,3 +134,5 @@ data class DizillaEpisode(
 data class DizillaSource(
     @JsonProperty("source_content") val sourceContent: String? = null
 )
+
+

@@ -1,6 +1,7 @@
 package com.memati
 
 import android.util.Log
+import com.lagradost.cloudstream3.addDate
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.*
 import com.lagradost.cloudstream3.network.WebViewResolver
@@ -186,6 +187,11 @@ class DizillaProvider : MainAPI() {
 
         var dizillaData: DizillaSecureData? = null
         val episodeList = mutableListOf<Episode>()
+        
+        // TMDB Data Storage
+        var tmdbDetails: TmdbDetails? = null
+        var tmdbSeasonsMap: Map<Int, TmdbSeasonResp?> = emptyMap()
+        
         try {
             val jsonMatch = Regex("<script id=\"__NEXT_DATA__\" type=\"application/json\">(.*?)</script>", RegexOption.DOT_MATCHES_ALL).find(document.html())
             if (jsonMatch != null) {
@@ -198,16 +204,48 @@ class DizillaProvider : MainAPI() {
                         if (jsonStart != -1) {
                             val parsed = AppUtils.parseJson<DizillaSecureData>(decrypted.substring(jsonStart))
                             dizillaData = parsed
+                            
+                            // 🚀 ENDÜSTRİYEL TMDB ENTEGRASYONU (Asenkron & Hızlı)
+                            val imdbId = parsed.relatedResults?.getSeriesByImdb?.result?.firstOrNull()?.imdbId
+                            if (!imdbId.isNullOrBlank()) {
+                                val apiKey = "c4ffcab48dfaa7b41625ac13d61aec31"
+                                val tmdbId = app.get("https://api.themoviedb.org/3/find/$imdbId?api_key=$apiKey&external_source=imdb_id&language=tr-TR").parsedSafe<TmdbFindResponse>()?.tvResults?.firstOrNull()?.id
+                                
+                                if (tmdbId != null) {
+                                    tmdbDetails = app.get("https://api.themoviedb.org/3/tv/$tmdbId?api_key=$apiKey&language=tr-TR&append_to_response=credits").parsedSafe<TmdbDetails>()
+                                    
+                                    val seasonNumbers = parsed.relatedResults?.getSerieSeasonAndEpisodes?.result?.mapNotNull { it.seasonNo } ?: emptyList()
+                                    
+                                    val mapped = seasonNumbers.amap { sNo ->
+                                        sNo to app.get("https://api.themoviedb.org/3/tv/$tmdbId/season/$sNo?api_key=$apiKey&language=tr-TR").parsedSafe<TmdbSeasonResp>()
+                                    }
+                                    tmdbSeasonsMap = mapped.toMap()
+                                }
+                            }
+
                             parsed.relatedResults?.getSerieSeasonAndEpisodes?.result?.forEach { season ->
+                                val tmdbSeason = tmdbSeasonsMap[season.seasonNo]?.episodes
                                 season.episodes?.forEach { ep ->
                                     if (ep.usedSlug != null) {
+                                        val tmdbEp = tmdbSeason?.find { it.episodeNumber == ep.episodeNo }
+                                        
                                         episodeList.add(newEpisode("$mainUrl/${ep.usedSlug}") {
-                                            this.name = ep.episodeText ?: "Bölüm ${ep.episodeNo}"
+                                            this.name = tmdbEp?.name ?: ep.episodeText ?: "Bölüm ${ep.episodeNo}"
                                             this.season = season.seasonNo
                                             this.episode = ep.episodeNo
-                                            this.description = ep.episodeDescription
+                                            this.description = tmdbEp?.overview?.takeIf { it.isNotBlank() } ?: ep.episodeDescription
                                             
-                                            val rawDate = ep.releaseDate?.split("T")?.firstOrNull()
+                                            // TMDB Kapak Resmi
+                                            if (!tmdbEp?.stillPath.isNullOrBlank()) {
+                                                this.posterUrl = "https://image.tmdb.org/t/p/w500${tmdbEp?.stillPath}"
+                                            }
+                                            
+                                            // TMDB Süre (Runtime)
+                                            if (tmdbEp?.runtime != null) {
+                                                this.runTime = tmdbEp.runtime
+                                            }
+                                            
+                                            val rawDate = tmdbEp?.airDate ?: ep.releaseDate?.split("T")?.firstOrNull()
                                             if (!rawDate.isNullOrBlank()) {
                                                 addDate(rawDate)
                                             }
@@ -241,21 +279,39 @@ class DizillaProvider : MainAPI() {
             this.posterUrl = cleanDizillaImage(rawPoster, isPoster = true)
             this.backgroundPosterUrl = cleanDizillaImage(rawPoster, isPoster = false)
             this.year = year
-            this.plot = dizillaData?.contentItem?.usedShortDescription ?: description ?: dizillaData?.contentItem?.usedLongDescription
+            this.plot = dizillaData?.contentItem?.usedShortDescription?.takeIf { it.isNotBlank() }
+                ?: dizillaData?.contentItem?.description?.takeIf { it.isNotBlank() }
+                ?: dizillaData?.contentItem?.usedLongDescription?.takeIf { it.isNotBlank() }
+                ?: description
             this.tags = tags
             
-            // Native Dizilla Actor & Creator Mapping
+            // TMDB + Native Hybrid Actor Mapping
             val allActors = mutableListOf<Pair<Actor, String?>>()
             
-            dizillaData?.relatedResults?.getSerieCreatorsById?.result?.forEach { cast ->
+            // 1. TMDB'den gelen devasa ve resimli kadroyu ekle
+            tmdbDetails?.credits?.cast?.forEach { cast ->
                 if (!cast.name.isNullOrBlank()) {
-                    allActors.add(Pair(Actor(cast.name, cleanDizillaImage(cast.castImage, isPoster = true)), "Yaratıcı"))
+                    val profileImg = cast.profilePath?.let { "https://image.tmdb.org/t/p/w500$it" }
+                    allActors.add(Pair(Actor(cast.name, profileImg), cast.character))
                 }
             }
             
-            dizillaData?.relatedResults?.getSerieCastsById?.result?.forEach { cast ->
+            // 2. Dizilla'nın Yaratıcılarını Ekle
+            dizillaData?.relatedResults?.getSerieCreatorsById?.result?.forEach { cast ->
                 if (!cast.name.isNullOrBlank()) {
-                    allActors.add(Pair(Actor(cast.name, cleanDizillaImage(cast.castImage, isPoster = true)), cast.roleName))
+                    // TMDB'de zaten varsa atla
+                    if (allActors.none { it.first.name == cast.name }) {
+                        allActors.add(Pair(Actor(cast.name, cleanDizillaImage(cast.castImage, isPoster = true)), "Yaratıcı"))
+                    }
+                }
+            }
+            
+            // 3. Eğer TMDB çalışmadıysa (API limiti vb.) Native Dizilla Oyuncularına Düş (Fallback)
+            if (tmdbDetails == null) {
+                dizillaData?.relatedResults?.getSerieCastsById?.result?.forEach { cast ->
+                    if (!cast.name.isNullOrBlank()) {
+                        allActors.add(Pair(Actor(cast.name, cleanDizillaImage(cast.castImage, isPoster = true)), cast.roleName))
+                    }
                 }
             }
             
