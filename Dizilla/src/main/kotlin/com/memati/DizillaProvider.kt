@@ -178,8 +178,11 @@ class DizillaProvider : MainAPI() {
 
     override suspend fun load(url: String): LoadResponse? {
         val document = app.get(url).document
-        val title = document.selectFirst("meta[property='og:title']")?.attr("content")?.replace(" izle", "")?.trim()
+        val rawTitle = document.selectFirst("meta[property='og:title']")?.attr("content")?.replace(" izle", "")?.trim()
             ?: document.selectFirst("title")?.text()?.replace(" izle", "")?.split("-")?.firstOrNull()?.trim() ?: return null
+        
+        val title = cleanDizillaTitle(rawTitle)
+        
         val rawPoster = document.selectFirst("meta[property='og:image']")?.attr("content")
         val description = document.selectFirst("meta[property='og:description']")?.attr("content")?.trim() 
         val tags = document.select("a[href*='/dizi-turu/']").map { it.text() }
