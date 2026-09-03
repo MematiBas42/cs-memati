@@ -39,7 +39,8 @@ data class DizillaSecureData(
 
 data class DizillaContentItem(
     @JsonProperty("imdb_point") val imdbPoint: Double? = null,
-    @JsonProperty("used_long_description") val usedLongDescription: String? = null
+    @JsonProperty("used_long_description") val usedLongDescription: String? = null,
+    @JsonProperty("used_short_description") val usedShortDescription: String? = null
 )
 
 data class DizillaPopularSeries(
@@ -66,6 +67,7 @@ data class DizillaPageItem(
 
 data class DizillaRelatedResults(
     @JsonProperty("getSerieCastsById") val getSerieCastsById: DizillaResultWrapper<DizillaCast>? = null,
+    @JsonProperty("getSerieCreatorsById") val getSerieCreatorsById: DizillaResultWrapper<DizillaCast>? = null,
     @JsonProperty("getSerieSeasonAndEpisodes") val getSerieSeasonAndEpisodes: DizillaResultWrapper<DizillaSeason>? = null,
     @JsonProperty("getEpisodeSources") val getEpisodeSources: DizillaResultWrapper<DizillaSource>? = null
 )

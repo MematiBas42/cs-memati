@@ -125,15 +125,14 @@ class DizillaProvider : MainAPI() {
                                 } else {
                                     cleanTitle
                                 }
-                                
-                                val finalTitleWithScore = if (item.imdbPoint != null && item.imdbPoint > 0.0) {
-                                    "★ ${item.imdbPoint} | $finalTitle"
-                                } else finalTitle
 
                                 val posterUrl = cleanDizillaImage(item.posterUrl ?: item.objectPosterUrl ?: item.seriesPosterUrl ?: item.brandUrl ?: item.faceUrl ?: item.squareUrl, isPoster = true)
                                 
-                                results.add(newTvSeriesSearchResponse(finalTitleWithScore, targetUrl, TvType.TvSeries) {
+                                results.add(newTvSeriesSearchResponse(finalTitle, targetUrl, TvType.TvSeries) {
                                     this.posterUrl = posterUrl
+                                    if (item.imdbPoint != null && item.imdbPoint > 0.0) {
+                                        this.score = Score.from(item.imdbPoint, 10)
+                                    }
                                 })
                             }
                         }
@@ -207,6 +206,11 @@ class DizillaProvider : MainAPI() {
                                             this.season = season.seasonNo
                                             this.episode = ep.episodeNo
                                             this.description = ep.episodeDescription
+                                            
+                                            val rawDate = ep.releaseDate?.split("T")?.firstOrNull()
+                                            if (!rawDate.isNullOrBlank()) {
+                                                addDate(rawDate)
+                                            }
                                         })
                                     }
                                 }
@@ -237,16 +241,32 @@ class DizillaProvider : MainAPI() {
             this.posterUrl = cleanDizillaImage(rawPoster, isPoster = true)
             this.backgroundPosterUrl = cleanDizillaImage(rawPoster, isPoster = false)
             this.year = year
-            this.plot = description ?: dizillaData?.contentItem?.usedLongDescription
+            this.plot = dizillaData?.contentItem?.usedShortDescription ?: description ?: dizillaData?.contentItem?.usedLongDescription
             this.tags = tags
             
-            // Native Dizilla Actor Mapping
-            val casts = dizillaData?.relatedResults?.getSerieCastsById?.result?.mapNotNull { cast ->
-                if (cast.name.isNullOrBlank()) return@mapNotNull null
-                Pair(Actor(cast.name, cleanDizillaImage(cast.castImage, isPoster = true)), cast.roleName)
+            // Native Dizilla Actor & Creator Mapping
+            val allActors = mutableListOf<Pair<Actor, String?>>()
+            
+            dizillaData?.relatedResults?.getSerieCreatorsById?.result?.forEach { cast ->
+                if (!cast.name.isNullOrBlank()) {
+                    allActors.add(Pair(Actor(cast.name, cleanDizillaImage(cast.castImage, isPoster = true)), "Yaratıcı"))
+                }
             }
-            if (!casts.isNullOrEmpty()) {
-                addActors(casts)
+            
+            dizillaData?.relatedResults?.getSerieCastsById?.result?.forEach { cast ->
+                if (!cast.name.isNullOrBlank()) {
+                    allActors.add(Pair(Actor(cast.name, cleanDizillaImage(cast.castImage, isPoster = true)), cast.roleName))
+                }
+            }
+            
+            if (allActors.isNotEmpty()) {
+                addActors(allActors)
+            }
+            
+            dizillaData?.contentItem?.imdbPoint?.let { imdb ->
+                if (imdb > 0.0) {
+                    this.score = Score.from(imdb, 10)
+                }
             }
         }
     }
