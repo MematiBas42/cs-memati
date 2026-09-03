@@ -1,0 +1,19 @@
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+**/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+.vscode
+# Dev Tools
+dev-tools/venv/
+dev-tools/__pycache__/
+dev-tools/page.html
+
+dizilla.md
+opencode.md

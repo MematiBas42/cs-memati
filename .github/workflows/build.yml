@@ -1,0 +1,68 @@
+name: Enterprise Build & Deploy
+
+concurrency: 
+  group: "build-${{ github.ref }}"
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - master
+      - main
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'repo.json'
+      - 'dev-tools/**'
+      - 'releases/**'
+      - '.vscode/**'
+
+# Least Privilege: Yalnızca gerekli izinler tanımlandı
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+        with:
+          path: "src"
+
+      - name: Checkout Builds Branch
+        uses: actions/checkout@v4
+        with:
+          ref: "builds"
+          path: "builds"
+          
+      - name: Clean Old Builds
+        run: rm -f $GITHUB_WORKSPACE/builds/*.cs3
+
+      - name: Setup JDK 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle & Caching
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: false
+
+      - name: Build CloudStream Plugins
+        run: |
+          cd $GITHUB_WORKSPACE/src
+          chmod +x gradlew
+          ./gradlew make makePluginsJson --no-daemon
+          cp **/build/*.cs3 $GITHUB_WORKSPACE/builds/
+          cp build/plugins.json $GITHUB_WORKSPACE/builds/
+
+      - name: Push Builds to Repository
+        run: |
+          cd $GITHUB_WORKSPACE/builds
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions [Bot]"
+          git add .
+          git commit --amend -m "Auto-build: Enterprise Plugin Release ${{ github.sha }}" || exit 0
+          git push --force
