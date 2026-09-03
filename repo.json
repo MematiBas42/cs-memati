@@ -3,6 +3,6 @@
   "description": "Memati'nin özel eklentileri (Dizilla vb.)",
   "manifestVersion": 1,
   "pluginLists": [
-    "https://raw.githubusercontent.com/MematiBas42/cs-memati/builds/plugins.json"
+    "plugins.json"
   ]
 }
