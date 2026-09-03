@@ -126,9 +126,13 @@ class DizillaProvider : MainAPI() {
                                     cleanTitle
                                 }
                                 
+                                val finalTitleWithScore = if (item.imdbPoint != null && item.imdbPoint > 0.0) {
+                                    "★ ${item.imdbPoint} | $finalTitle"
+                                } else finalTitle
+
                                 val posterUrl = cleanDizillaImage(item.posterUrl ?: item.objectPosterUrl ?: item.seriesPosterUrl ?: item.brandUrl ?: item.faceUrl ?: item.squareUrl, isPoster = true)
                                 
-                                results.add(newTvSeriesSearchResponse(finalTitle, targetUrl, TvType.TvSeries) {
+                                results.add(newTvSeriesSearchResponse(finalTitleWithScore, targetUrl, TvType.TvSeries) {
                                     this.posterUrl = posterUrl
                                 })
                             }
@@ -181,6 +185,7 @@ class DizillaProvider : MainAPI() {
         val tags = document.select("a[href*='/dizi-turu/']").map { it.text() }
         val year = document.select("span").find { it.text().matches(Regex("\\d{4}")) }?.text()?.toIntOrNull()
 
+        var dizillaData: DizillaSecureData? = null
         val episodeList = mutableListOf<Episode>()
         try {
             val jsonMatch = Regex("<script id=\"__NEXT_DATA__\" type=\"application/json\">(.*?)</script>", RegexOption.DOT_MATCHES_ALL).find(document.html())
@@ -193,6 +198,7 @@ class DizillaProvider : MainAPI() {
                         val jsonStart = decrypted.indexOf("{")
                         if (jsonStart != -1) {
                             val parsed = AppUtils.parseJson<DizillaSecureData>(decrypted.substring(jsonStart))
+                            dizillaData = parsed
                             parsed.relatedResults?.getSerieSeasonAndEpisodes?.result?.forEach { season ->
                                 season.episodes?.forEach { ep ->
                                     if (ep.usedSlug != null) {
@@ -200,6 +206,7 @@ class DizillaProvider : MainAPI() {
                                             this.name = ep.episodeText ?: "Bölüm ${ep.episodeNo}"
                                             this.season = season.seasonNo
                                             this.episode = ep.episodeNo
+                                            this.description = ep.episodeDescription
                                         })
                                     }
                                 }
@@ -230,8 +237,17 @@ class DizillaProvider : MainAPI() {
             this.posterUrl = cleanDizillaImage(rawPoster, isPoster = true)
             this.backgroundPosterUrl = cleanDizillaImage(rawPoster, isPoster = false)
             this.year = year
-            this.plot = description
+            this.plot = description ?: dizillaData?.contentItem?.usedLongDescription
             this.tags = tags
+            
+            // Native Dizilla Actor Mapping
+            val casts = dizillaData?.relatedResults?.getSerieCastsById?.result?.mapNotNull { cast ->
+                if (cast.name.isNullOrBlank()) return@mapNotNull null
+                Pair(Actor(cast.name, cleanDizillaImage(cast.castImage, isPoster = true)), cast.roleName)
+            }
+            if (!casts.isNullOrEmpty()) {
+                addActors(casts)
+            }
         }
     }
 

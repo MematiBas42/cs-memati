@@ -33,7 +33,13 @@ data class DizillaSecureData(
     @JsonProperty("getEpisodesOnNewSeason") val getEpisodesOnNewSeason: List<DizillaPageItem>? = null,
     
     // Dizi Detay ve Oynatıcı Verileri
+    @JsonProperty("contentItem") val contentItem: DizillaContentItem? = null,
     @JsonProperty("RelatedResults") val relatedResults: DizillaRelatedResults? = null
+)
+
+data class DizillaContentItem(
+    @JsonProperty("imdb_point") val imdbPoint: Double? = null,
+    @JsonProperty("used_long_description") val usedLongDescription: String? = null
 )
 
 data class DizillaPopularSeries(
@@ -45,6 +51,7 @@ data class DizillaPageItem(
     @JsonProperty("original_title") val originalTitle: String? = null,
     @JsonProperty("episode_text") val episodeText: String? = null,
     @JsonProperty("season_text") val seasonText: String? = null,
+    @JsonProperty("imdb_point") val imdbPoint: Double? = null,
     @JsonProperty("poster_url") val posterUrl: String? = null,
     @JsonProperty("object_poster_url") val objectPosterUrl: String? = null,
     @JsonProperty("series_poster_url") val seriesPosterUrl: String? = null,
@@ -58,8 +65,15 @@ data class DizillaPageItem(
 )
 
 data class DizillaRelatedResults(
+    @JsonProperty("getSerieCastsById") val getSerieCastsById: DizillaResultWrapper<DizillaCast>? = null,
     @JsonProperty("getSerieSeasonAndEpisodes") val getSerieSeasonAndEpisodes: DizillaResultWrapper<DizillaSeason>? = null,
     @JsonProperty("getEpisodeSources") val getEpisodeSources: DizillaResultWrapper<DizillaSource>? = null
+)
+
+data class DizillaCast(
+    @JsonProperty("name") val name: String? = null,
+    @JsonProperty("role_name") val roleName: String? = null,
+    @JsonProperty("cast_image") val castImage: String? = null
 )
 
 data class DizillaResultWrapper<T>(
@@ -74,6 +88,8 @@ data class DizillaSeason(
 data class DizillaEpisode(
     @JsonProperty("episode_no") val episodeNo: Int? = null,
     @JsonProperty("episode_text") val episodeText: String? = null,
+    @JsonProperty("episode_description") val episodeDescription: String? = null,
+    @JsonProperty("release_date") val releaseDate: String? = null,
     @JsonProperty("used_slug") val usedSlug: String? = null
 )
 
