@@ -376,7 +376,7 @@ class DizillaProvider : MainAPI() {
                                         if (!linkFound) {
                                             val domain = Regex("https?://([^/]+)").find(finalUrl)?.groupValues?.getOrNull(1) ?: "Bilinmeyen"
                                             val altName = src.sourceName ?: "Alternatif"
-                                            val badge = "⚠️ BOZUK/DESTEKLENMİYOR - $altName ($domain)"
+                                            val badge = "⚠️ $altName ($domain)"
                                             
                                             callback.invoke(
                                                 newExtractorLink("Dizilla", badge, finalUrl) {
