@@ -17,3 +17,15 @@ dev-tools/page.html
 
 dizilla.md
 opencode.md
+CanliTV/
+
+# RE & Tools
+RecTV/rec.md
+RecTV/tools/
+*.py
+
+# Ignore entire RecTV extension
+RecTV/
+
+# Ignore InatBox
+InatBox/
