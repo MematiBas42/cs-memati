@@ -2,7 +2,6 @@
 
 package com.memati
 
-import android.util.Log
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.addDate
 import com.lagradost.cloudstream3.utils.*
